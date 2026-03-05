@@ -1,0 +1,11 @@
+// Force doNotTrackState for merge*NativeLibs (Gradle 9 + Windows symlink issue)
+gradle.projectsLoaded {
+    gradle.rootProject.subprojects { p ->
+        p.afterEvaluate {
+            ["mergeDebugNativeLibs", "mergeReleaseNativeLibs"].each { name ->
+                def t = p.tasks.findByName(name)
+                if (t != null) t.doNotTrackState("CMake/native lib paths can be symlinks on Windows (Gradle 9)")
+            }
+        }
+    }
+}

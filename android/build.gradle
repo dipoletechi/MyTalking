@@ -19,3 +19,20 @@ buildscript {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+// Workaround for Gradle 9 + CMake on Windows: "libc++_shared.so: not a regular file"
+subprojects { sub ->
+    if (sub != sub.rootProject && !sub.state.executed) {
+        sub.afterEvaluate {
+            ["mergeDebugNativeLibs", "mergeReleaseNativeLibs"].each { name ->
+                def t = sub.tasks.findByName(name)
+                if (t != null) t.doNotTrackState("CMake/native lib paths can be non-regular on Windows (Gradle 9 compatibility)")
+            }
+        }
+    }
+    sub.tasks.whenTaskAdded { task ->
+        if (task.name.startsWith("buildCMake") || task.name == "mergeDebugNativeLibs" || task.name == "mergeReleaseNativeLibs") {
+            task.doNotTrackState("CMake/native lib paths can be non-regular on Windows (Gradle 9 compatibility)")
+        }
+    }
+}
