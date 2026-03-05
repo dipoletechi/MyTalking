@@ -107,34 +107,46 @@ const robotHTML = `
             const floorGeometry = new THREE.PlaneGeometry(floorSize, floorSize, 20, 20);
             
             const floorCanvas = document.createElement('canvas');
-            floorCanvas.width = 512;
-            floorCanvas.height = 512;
+            const ts = 64;
+            floorCanvas.width = ts * 8;
+            floorCanvas.height = ts * 8;
             const floorCtx = floorCanvas.getContext('2d');
             
-            const centerX = 256, centerY = 256;
-            const gradient = floorCtx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 256);
-            gradient.addColorStop(0, 'rgba(26, 26, 46, 0.5)');
-            gradient.addColorStop(0.5, 'rgba(22, 33, 62, 0.4)');
-            gradient.addColorStop(1, 'rgba(15, 52, 96, 0.3)');
-            floorCtx.fillStyle = gradient;
-            floorCtx.fillRect(0, 0, 512, 512);
+            const tileDark = 'rgba(15, 52, 96, 0.55)';
+            const tileLight = 'rgba(22, 33, 62, 0.5)';
+            const accent = 'rgba(0, 217, 255, 0.12)';
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    floorCtx.fillStyle = (row + col) % 2 === 0 ? tileLight : tileDark;
+                    floorCtx.fillRect(col * ts, row * ts, ts, ts);
+                    floorCtx.strokeStyle = accent;
+                    floorCtx.lineWidth = 1;
+                    floorCtx.strokeRect(col * ts, row * ts, ts, ts);
+                }
+            }
+            const centerX = floorCanvas.width / 2, centerY = floorCanvas.height / 2;
+            const vignette = floorCtx.createRadialGradient(centerX, centerY, 0, centerX, centerY, centerX);
+            vignette.addColorStop(0.6, 'rgba(0,0,0,0)');
+            vignette.addColorStop(1, 'rgba(0,0,0,0.4)');
+            floorCtx.fillStyle = vignette;
+            floorCtx.fillRect(0, 0, floorCanvas.width, floorCanvas.height);
             
             const floorTexture = new THREE.CanvasTexture(floorCanvas);
             floorTexture.wrapS = THREE.RepeatWrapping;
             floorTexture.wrapT = THREE.RepeatWrapping;
-            floorTexture.repeat.set(1.5, 1.5);
+            floorTexture.repeat.set(2, 2);
             
             const ground = new THREE.Mesh(
                 floorGeometry,
                 new THREE.MeshStandardMaterial({ 
                     map: floorTexture,
                     color: 0xffffff,
-                    metalness: 0.1,
-                    roughness: 0.9,
+                    metalness: 0.15,
+                    roughness: 0.85,
                     transparent: true,
-                    opacity: 0.4,
-                    emissive: 0x000000,
-                    emissiveIntensity: 0
+                    opacity: 0.7,
+                    emissive: 0x001a33,
+                    emissiveIntensity: 0.08
                 })
             );
             ground.rotation.x = -Math.PI / 2;
@@ -142,7 +154,7 @@ const robotHTML = `
             scene.add(ground);
 
             const grid = new THREE.GridHelper(floorSize, 20, 0x00d9ff, 0x00d9ff);
-            grid.material.opacity = 0.1;
+            grid.material.opacity = 0.18;
             grid.material.transparent = true;
             scene.add(grid);
         }
@@ -185,62 +197,58 @@ const robotHTML = `
             g = Math.floor(g / count);
             b = Math.floor(b / count);
             
-            // Create floor texture using sampled colors
+            // Create floor texture – tile pattern from sampled colors
             const floorCanvas = document.createElement('canvas');
-            floorCanvas.width = 512;
-            floorCanvas.height = 512;
+            const ts = 64;
+            floorCanvas.width = ts * 8;
+            floorCanvas.height = ts * 8;
             const floorCtx = floorCanvas.getContext('2d');
-            
-            // Create gradient using sampled colors (darker for floor)
-            const centerX = 256, centerY = 256;
-            const gradient = floorCtx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 256);
-            gradient.addColorStop(0, 'rgba(' + r + ', ' + g + ', ' + b + ', 0.5)');
-            gradient.addColorStop(0.5, 'rgba(' + Math.floor(r*0.7) + ', ' + Math.floor(g*0.7) + ', ' + Math.floor(b*0.7) + ', 0.4)');
-            gradient.addColorStop(1, 'rgba(' + Math.floor(r*0.5) + ', ' + Math.floor(g*0.5) + ', ' + Math.floor(b*0.5) + ', 0.3)');
-            floorCtx.fillStyle = gradient;
-            floorCtx.fillRect(0, 0, 512, 512);
-            
-            // Add subtle pattern using sampled colors
-            const patternColor = 'rgba(' + r + ', ' + g + ', ' + b + ', 0.08)';
-            floorCtx.strokeStyle = patternColor;
-            floorCtx.lineWidth = 1;
-            for (let i = 0; i < 12; i++) {
-                floorCtx.beginPath();
-                floorCtx.moveTo(i * 42.6, 0);
-                floorCtx.lineTo(i * 42.6, 512);
-                floorCtx.stroke();
-                floorCtx.beginPath();
-                floorCtx.moveTo(0, i * 42.6);
-                floorCtx.lineTo(512, i * 42.6);
-                floorCtx.stroke();
+            const r1 = Math.floor(r * 0.85), g1 = Math.floor(g * 0.85), b1 = Math.floor(b * 0.85);
+            const r2 = Math.floor(r * 0.6), g2 = Math.floor(g * 0.6), b2 = Math.floor(b * 0.6);
+            const tileLight = 'rgba(' + r1 + ',' + g1 + ',' + b1 + ',0.55)';
+            const tileDark = 'rgba(' + r2 + ',' + g2 + ',' + b2 + ',0.5)';
+            const accent = 'rgba(' + r + ',' + g + ',' + b + ',0.15)';
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    floorCtx.fillStyle = (row + col) % 2 === 0 ? tileLight : tileDark;
+                    floorCtx.fillRect(col * ts, row * ts, ts, ts);
+                    floorCtx.strokeStyle = accent;
+                    floorCtx.lineWidth = 1;
+                    floorCtx.strokeRect(col * ts, row * ts, ts, ts);
+                }
             }
+            const centerX = floorCanvas.width / 2, centerY = floorCanvas.height / 2;
+            const vignette = floorCtx.createRadialGradient(centerX, centerY, 0, centerX, centerY, centerX);
+            vignette.addColorStop(0.6, 'rgba(0,0,0,0)');
+            vignette.addColorStop(1, 'rgba(0,0,0,0.35)');
+            floorCtx.fillStyle = vignette;
+            floorCtx.fillRect(0, 0, floorCanvas.width, floorCanvas.height);
             
             const floorTexture = new THREE.CanvasTexture(floorCanvas);
             floorTexture.wrapS = THREE.RepeatWrapping;
             floorTexture.wrapT = THREE.RepeatWrapping;
-            floorTexture.repeat.set(1.5, 1.5);
+            floorTexture.repeat.set(2, 2);
             
             const ground = new THREE.Mesh(
                 floorGeometry,
                 new THREE.MeshStandardMaterial({ 
                     map: floorTexture,
                     color: 0xffffff,
-                    metalness: 0.1,
-                    roughness: 0.9,
+                    metalness: 0.15,
+                    roughness: 0.85,
                     transparent: true,
-                    opacity: 0.5,
-                    emissive: 0x000000,
-                    emissiveIntensity: 0
+                    opacity: 0.65,
+                    emissive: (r << 16) | (g << 8) | b,
+                    emissiveIntensity: 0.06
                 })
             );
             ground.rotation.x = -Math.PI / 2;
             ground.receiveShadow = true;
             scene.add(ground);
 
-            // Subtle grid using sampled colors
-            const gridColor = 'rgb(' + r + ', ' + g + ', ' + b + ')';
+            const gridColor = (r << 16) | (g << 8) | b;
             const grid = new THREE.GridHelper(floorSize, 20, gridColor, gridColor);
-            grid.material.opacity = 0.1;
+            grid.material.opacity = 0.16;
             grid.material.transparent = true;
             scene.add(grid);
             

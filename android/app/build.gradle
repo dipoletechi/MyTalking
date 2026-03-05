@@ -126,8 +126,8 @@ def fixLibcxxSymlinks = tasks.register("fixLibcxxSymlinks") {
     doLast {
         def ndkDir = android.ndkDirectory?.absolutePath ?: System.getenv("ANDROID_NDK_HOME")
         if (!ndkDir) return
-        def cxxDir = file("${layout.buildDirectory.get()}/intermediates/cxx/Debug")
-        if (!cxxDir.exists()) return
+        def cxxRoot = file("${layout.buildDirectory.get()}/intermediates/cxx")
+        if (!cxxRoot.exists()) return
         def host = "windows-x86_64"
         def abiToNdkArch = [
             "armeabi-v7a": "arm-linux-androideabi",
@@ -135,15 +135,17 @@ def fixLibcxxSymlinks = tasks.register("fixLibcxxSymlinks") {
             "x86": "i686-linux-android",
             "x86_64": "x86_64-linux-android"
         ]
-        cxxDir.eachDir { buildDir ->
-            abiToNdkArch.each { abi, ndkArch ->
-                def destFile = new File(buildDir, "obj/${abi}/libc++_shared.so")
-                if (destFile.exists()) {
-                    def srcFile = file("${ndkDir}/toolchains/llvm/prebuilt/${host}/sysroot/usr/lib/${ndkArch}/libc++_shared.so")
-                    if (!srcFile.exists()) srcFile = file("${ndkDir}/sources/cxx-stl/llvm-libc++/libs/${abi}/libc++_shared.so")
-                    if (srcFile.exists()) {
-                        destFile.delete()
-                        srcFile.withInputStream { destFile.newOutputStream() << it }
+        cxxRoot.eachDir { variantDir ->
+            variantDir.eachDir { buildDir ->
+                abiToNdkArch.each { abi, ndkArch ->
+                    def destFile = new File(buildDir, "obj/${abi}/libc++_shared.so")
+                    if (destFile.exists()) {
+                        def srcFile = file("${ndkDir}/toolchains/llvm/prebuilt/${host}/sysroot/usr/lib/${ndkArch}/libc++_shared.so")
+                        if (!srcFile.exists()) srcFile = file("${ndkDir}/sources/cxx-stl/llvm-libc++/libs/${abi}/libc++_shared.so")
+                        if (srcFile.exists()) {
+                            destFile.delete()
+                            srcFile.withInputStream { destFile.newOutputStream() << it }
+                        }
                     }
                 }
             }
