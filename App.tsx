@@ -112,9 +112,9 @@ const robotHTML = `
             floorCanvas.height = ts * 8;
             const floorCtx = floorCanvas.getContext('2d');
             
-            const tileDark = 'rgba(15, 52, 96, 0.55)';
-            const tileLight = 'rgba(22, 33, 62, 0.5)';
-            const accent = 'rgba(0, 217, 255, 0.12)';
+            const tileDark = 'rgba(12, 40, 75, 0.95)';
+            const tileLight = 'rgba(18, 28, 52, 0.92)';
+            const accent = 'rgba(0, 217, 255, 0.2)';
             for (let row = 0; row < 8; row++) {
                 for (let col = 0; col < 8; col++) {
                     floorCtx.fillStyle = (row + col) % 2 === 0 ? tileLight : tileDark;
@@ -126,8 +126,8 @@ const robotHTML = `
             }
             const centerX = floorCanvas.width / 2, centerY = floorCanvas.height / 2;
             const vignette = floorCtx.createRadialGradient(centerX, centerY, 0, centerX, centerY, centerX);
-            vignette.addColorStop(0.6, 'rgba(0,0,0,0)');
-            vignette.addColorStop(1, 'rgba(0,0,0,0.4)');
+            vignette.addColorStop(0.65, 'rgba(0,0,0,0)');
+            vignette.addColorStop(1, 'rgba(0,0,0,0.25)');
             floorCtx.fillStyle = vignette;
             floorCtx.fillRect(0, 0, floorCanvas.width, floorCanvas.height);
             
@@ -141,12 +141,12 @@ const robotHTML = `
                 new THREE.MeshStandardMaterial({ 
                     map: floorTexture,
                     color: 0xffffff,
-                    metalness: 0.15,
-                    roughness: 0.85,
-                    transparent: true,
-                    opacity: 0.7,
+                    metalness: 0.12,
+                    roughness: 0.88,
+                    transparent: false,
+                    opacity: 1,
                     emissive: 0x001a33,
-                    emissiveIntensity: 0.08
+                    emissiveIntensity: 0.06
                 })
             );
             ground.rotation.x = -Math.PI / 2;
@@ -205,9 +205,9 @@ const robotHTML = `
             const floorCtx = floorCanvas.getContext('2d');
             const r1 = Math.floor(r * 0.85), g1 = Math.floor(g * 0.85), b1 = Math.floor(b * 0.85);
             const r2 = Math.floor(r * 0.6), g2 = Math.floor(g * 0.6), b2 = Math.floor(b * 0.6);
-            const tileLight = 'rgba(' + r1 + ',' + g1 + ',' + b1 + ',0.55)';
-            const tileDark = 'rgba(' + r2 + ',' + g2 + ',' + b2 + ',0.5)';
-            const accent = 'rgba(' + r + ',' + g + ',' + b + ',0.15)';
+            const tileLight = 'rgba(' + r1 + ',' + g1 + ',' + b1 + ',0.94)';
+            const tileDark = 'rgba(' + r2 + ',' + g2 + ',' + b2 + ',0.92)';
+            const accent = 'rgba(' + r + ',' + g + ',' + b + ',0.22)';
             for (let row = 0; row < 8; row++) {
                 for (let col = 0; col < 8; col++) {
                     floorCtx.fillStyle = (row + col) % 2 === 0 ? tileLight : tileDark;
@@ -219,8 +219,8 @@ const robotHTML = `
             }
             const centerX = floorCanvas.width / 2, centerY = floorCanvas.height / 2;
             const vignette = floorCtx.createRadialGradient(centerX, centerY, 0, centerX, centerY, centerX);
-            vignette.addColorStop(0.6, 'rgba(0,0,0,0)');
-            vignette.addColorStop(1, 'rgba(0,0,0,0.35)');
+            vignette.addColorStop(0.65, 'rgba(0,0,0,0)');
+            vignette.addColorStop(1, 'rgba(0,0,0,0.2)');
             floorCtx.fillStyle = vignette;
             floorCtx.fillRect(0, 0, floorCanvas.width, floorCanvas.height);
             
@@ -234,12 +234,12 @@ const robotHTML = `
                 new THREE.MeshStandardMaterial({ 
                     map: floorTexture,
                     color: 0xffffff,
-                    metalness: 0.15,
-                    roughness: 0.85,
-                    transparent: true,
-                    opacity: 0.65,
+                    metalness: 0.12,
+                    roughness: 0.88,
+                    transparent: false,
+                    opacity: 1,
                     emissive: (r << 16) | (g << 8) | b,
-                    emissiveIntensity: 0.06
+                    emissiveIntensity: 0.05
                 })
             );
             ground.rotation.x = -Math.PI / 2;
@@ -334,6 +334,7 @@ const robotHTML = `
                 'https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb',
                 function (gltf) {
                     model = gltf.scene;
+                    model.scale.setScalar(0.72);
                     model.traverse((child) => {
                         if (child.isMesh) child.castShadow = true;
                         if (child.name === 'Head_4') face = child;
@@ -369,11 +370,14 @@ const robotHTML = `
             const controls = new OrbitControls(camera, renderer.domElement);
             controls.target.set(0, 1, 0);
             controls.enableDamping = true;
-            controls.dampingFactor = 0.1;
+            controls.dampingFactor = 0.12;
             controls.minDistance = 10;
             controls.maxDistance = 25;
-            controls.maxPolarAngle = Math.PI / 1.8; // Allow more vertical rotation for 360 view
-            controls.enablePan = false; // Disable panning, only rotation
+            // Sirf 360 horizontal ghoomna (niche), up-down lock – bas horizontal rotate
+            const polarAngle = Math.PI / 2.15;
+            controls.minPolarAngle = polarAngle;
+            controls.maxPolarAngle = polarAngle;
+            controls.enablePan = false;
             controls.update();
             
             // Equirectangular mapping automatically handles 360-degree background rotation
@@ -425,13 +429,13 @@ function App(): React.JSX.Element {
 
   const doListen = async () => {
     if (!SpeechModule || !robotReadyRef.current) {
-      scheduleNext(2000);
+      scheduleNext(800);
       return;
     }
 
     const hasPermission = await requestMicPermission();
     if (!hasPermission) {
-      scheduleNext(3000);
+      scheduleNext(1500);
       return;
     }
 
@@ -480,7 +484,7 @@ function App(): React.JSX.Element {
     const onFinish = () => {
       sendToWebView({ type: 'stopTalk' });
       setStatus('Rest');
-      scheduleNext(2000);
+      scheduleNext(700);
     };
 
     Tts.addEventListener('tts-finish', onFinish);
@@ -500,7 +504,7 @@ function App(): React.JSX.Element {
     setStatus('Rest');
     globalLoopTimer = setTimeout(() => {
       doListen();
-    }, 2000);
+    }, 900);
   };
 
   const onSplashEnd = () => {
