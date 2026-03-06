@@ -277,6 +277,7 @@ const robotHTML = `
         function init() {
             scene = new THREE.Scene();
             floorGroup = new THREE.Group();
+            floorGroup.position.y = -0.35;
             scene.add(floorGroup);
             const loader = new THREE.TextureLoader();
             const bgImage = '${BG_IMAGE_DATA_URI}';
@@ -344,7 +345,7 @@ const robotHTML = `
                 function (gltf) {
                     model = gltf.scene;
                     model.scale.setScalar(0.72);
-                    model.position.set(0, 0.35, -1.2);
+                    model.position.set(0, 0, -1.2);
                     model.traverse((child) => {
                         if (child.isMesh) child.castShadow = true;
                         if (child.name === 'Head_4') face = child;
@@ -363,7 +364,7 @@ const robotHTML = `
 
                     activeAction = actions['Idle'];
                     if (activeAction) activeAction.play();
-                    if (typeof controls !== 'undefined') controls.target.set(0, 0.35, -1.2);
+                    if (typeof controls !== 'undefined') controls.target.set(0, 0, -1.2);
                     window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'ready' }));
                 }
             );
@@ -378,7 +379,7 @@ const robotHTML = `
             document.body.appendChild(renderer.domElement);
 
             const controls = new OrbitControls(camera, renderer.domElement);
-            controls.target.set(0, 1, 0);
+            controls.target.set(0, 0, 0);
             controls.enableDamping = true;
             controls.dampingFactor = 0.12;
             controls.enableZoom = false;
