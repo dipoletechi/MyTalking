@@ -58,6 +58,7 @@ const robotHTML = `
         let face;
         let mouthInterval = null;
         let backgroundTexture = null;
+        let floorGroup = null;
 
         window.addEventListener('message', function(event) {
             try {
@@ -151,12 +152,15 @@ const robotHTML = `
             );
             ground.rotation.x = -Math.PI / 2;
             ground.receiveShadow = true;
-            scene.add(ground);
+            if (floorGroup) {
+                while (floorGroup.children.length) floorGroup.remove(floorGroup.children[0]);
+                floorGroup.add(ground);
+            } else { scene.add(ground); }
 
             const grid = new THREE.GridHelper(floorSize, 20, 0x00d9ff, 0x00d9ff);
             grid.material.opacity = 0.18;
             grid.material.transparent = true;
-            scene.add(grid);
+            if (floorGroup) floorGroup.add(grid); else scene.add(grid);
         }
 
         function createFloorFromBackground(bgTexture) {
@@ -244,13 +248,16 @@ const robotHTML = `
             );
             ground.rotation.x = -Math.PI / 2;
             ground.receiveShadow = true;
-            scene.add(ground);
+            if (floorGroup) {
+                while (floorGroup.children.length) floorGroup.remove(floorGroup.children[0]);
+                floorGroup.add(ground);
+            } else { scene.add(ground); }
 
             const gridColor = (r << 16) | (g << 8) | b;
             const grid = new THREE.GridHelper(floorSize, 20, gridColor, gridColor);
             grid.material.opacity = 0.16;
             grid.material.transparent = true;
-            scene.add(grid);
+            if (floorGroup) floorGroup.add(grid); else scene.add(grid);
             
             // Subtle ring using sampled colors
             const ringGeometry = new THREE.RingGeometry(14, 15, 64);
@@ -264,11 +271,13 @@ const robotHTML = `
             });
             const ring = new THREE.Mesh(ringGeometry, ringMaterial);
             ring.rotation.x = -Math.PI / 2;
-            scene.add(ring);
+            if (floorGroup) floorGroup.add(ring); else scene.add(ring);
         }
 
         function init() {
             scene = new THREE.Scene();
+            floorGroup = new THREE.Group();
+            scene.add(floorGroup);
             const loader = new THREE.TextureLoader();
             const bgImage = '${BG_IMAGE_DATA_URI}';
             if (bgImage && bgImage !== 'BG_IMAGE_PLACEHOLDER') {
@@ -335,6 +344,7 @@ const robotHTML = `
                 function (gltf) {
                     model = gltf.scene;
                     model.scale.setScalar(0.72);
+                    model.position.set(0, 0.35, -1.2);
                     model.traverse((child) => {
                         if (child.isMesh) child.castShadow = true;
                         if (child.name === 'Head_4') face = child;
@@ -353,7 +363,7 @@ const robotHTML = `
 
                     activeAction = actions['Idle'];
                     if (activeAction) activeAction.play();
-                    
+                    if (typeof controls !== 'undefined') controls.target.set(0, 0.35, -1.2);
                     window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'ready' }));
                 }
             );
@@ -371,6 +381,7 @@ const robotHTML = `
             controls.target.set(0, 1, 0);
             controls.enableDamping = true;
             controls.dampingFactor = 0.12;
+            controls.enableZoom = false;
             controls.minDistance = 10;
             controls.maxDistance = 25;
             // Sirf 360 horizontal ghoomna (niche), up-down lock – bas horizontal rotate
