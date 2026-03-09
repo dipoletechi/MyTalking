@@ -496,7 +496,7 @@ function App(): React.JSX.Element {
     const onFinish = () => {
       sendToWebView({ type: 'stopTalk' });
       setStatus('Rest');
-      scheduleNext(700);
+      scheduleNext(280);
     };
 
     Tts.addEventListener('tts-finish', onFinish);
